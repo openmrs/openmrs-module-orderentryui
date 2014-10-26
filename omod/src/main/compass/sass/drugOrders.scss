@@ -1,0 +1,86 @@
+@import "variables";
+
+.care-setting {
+  &.active {
+    font-weight: bold;
+  }
+}
+
+.will-replace {
+  text-decoration: line-through;
+}
+
+.ng-form {
+  input.ng-invalid.ng-touched {
+    background-color: #FA787E;
+    &:focus {
+      background-color: white;
+    }
+  }
+}
+
+.ui-tabs .ui-tabs-panel ul {
+  background-color: white;
+}
+
+td.actions {
+  width: 50px;
+}
+
+div.actions {
+  padding: 5px;
+}
+
+form#new-order {
+  background-color: $lighterGrey;
+  padding-left: 10px;
+  padding-right: 10px;
+
+  .instructions.heading {
+    span {
+      margin-right: 100px;
+    }
+    a {
+      font-size: 0.7em;
+      display: inline-block;
+      width:100px;
+      &.active {
+        font-family: $primaryBoldFont;
+        font-weight: normal;
+      }
+    }
+  }
+
+  label {
+    &.disabled {
+      color: $darkerGrey; // Replace with $subtlerText
+    }
+  }
+}
+
+#draft-orders {
+  border: 1px $lighterGrey solid;
+  background-color: $focus;
+  padding: 5px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+
+  .signature {
+    text-align: right;
+    color: $subtleText;
+  }
+}
+
+form.sized-inputs {
+  input {
+    min-width: 0%;
+    display: inline;
+  }
+  label {
+    display: inline;
+
+    &.heading {
+      display: block;
+    }
+  }
+}
