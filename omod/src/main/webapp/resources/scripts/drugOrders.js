@@ -14,7 +14,7 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
             // TODO changing dosingType of a draft order should reset defaults (and discard non-defaulted properties)
             var dosingTypes = [
                 {
-                    display: 'Simple Coded',
+                    display: 'Standard Dosing',
                     icon: 'icon-th-large',
                     javaClass: 'org.openmrs.SimpleDosingInstructions',
                     defaults: {
@@ -29,23 +29,30 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
                         dosingInstructions: null
                     },
                     validate: function(order) {
-                        return order.drug && order.dose && order.doseUnits && order.frequency && order.route && order.duration && order.durationUnits;
+                        var valid = order.drug && order.dose && order.doseUnits && order.frequency && order.route;
+                        if (order.careSetting.careSettingType === 'OUTPATIENT') {
+                            valid = valid && order.quantity && order.quantityUnits;
+                        }
+                        return valid;
                     },
                     format: function(order) {
                         var str = order.drug.display + ": " +
                             order.dose + " " + order.doseUnits.display + ", " +
                             order.frequency.display + ", " +
                             order.route.display +
-                            (order.asNeeded ? ", as needed" + (order.asNeededCondition ? " for " + order.asNeededCondition : "") : "") +
-                            ", for " +
-                            order.duration + " " + order.durationUnits.display +
-                            (order.dosingInstructions ? " (" + order.dosingInstructions + ")" : "");
+                            (order.asNeeded ? ", as needed" + (order.asNeededCondition ? " for " + order.asNeededCondition : "") : "");
+                        if (order.duration) {
+                            str += ", for " + order.duration + " " + order.durationUnits.display + " total";
+                        }
+                        if (order.dosingInstructions) {
+                            str += " (" + order.dosingInstructions + ")";
+                        }
                         return str;
                     }
                 },
                 {
                     display: 'Free Text',
-                    icon: 'icon-file-alt',
+                    icon: 'icon-edit',
                     javaClass: 'org.openmrs.FreeTextDosingInstructions',
                     defaults: {
                         dosingInstructions: '',
@@ -267,13 +274,13 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
 
             // formatting
 
-            $scope.formatActionAndDates = function(order) {
+            $scope.formatDates = function(order) {
                 if (order.action == 'DISCONTINUE') {
-                    return "DC";
+                    "";
                 } else {
-                    var text = order.action;
+                    var text = "";
                     if (order.dateActivated) {
-                        text += ' ' + formatDate(order.dateActivated);
+                        text += formatDate(order.dateActivated);
                         if (order.autoExpireDate) {
                             text += ' - ' + formatDate(order.autoExpireDate);
                         }
@@ -288,7 +295,7 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
                 } else {
                     var text = getDosingType(order).format(order);
                     if (order.quantity) {
-                        text += ' (' + order.quantity + ' ' + order.quantityUnits.display + ')';
+                        text += ' (Dispense: ' + order.quantity + ' ' + order.quantityUnits.display + ')';
                     }
                     return text;
                 }

@@ -7,7 +7,7 @@
 }
 
 .will-replace {
-  text-decoration: line-through;
+  color: $subtleText;
 }
 
 .ng-form {
@@ -43,7 +43,7 @@ form#new-order {
     a {
       font-size: 0.7em;
       display: inline-block;
-      width:100px;
+      width: 150px;
       &.active {
         font-family: $primaryBoldFont;
         font-weight: normal;

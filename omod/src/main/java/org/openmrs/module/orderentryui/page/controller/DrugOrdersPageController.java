@@ -1,6 +1,7 @@
 package org.openmrs.module.orderentryui.page.controller;
 
 import org.openmrs.CareSetting;
+import org.openmrs.Concept;
 import org.openmrs.EncounterType;
 import org.openmrs.Patient;
 import org.openmrs.api.EncounterService;
@@ -15,8 +16,10 @@ import org.openmrs.ui.framework.page.PageModel;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DrugOrdersPageController {
 
@@ -33,15 +36,21 @@ public class DrugOrdersPageController {
 
         List<CareSetting> careSettings = orderService.getCareSettings(false);
 
+        List<Concept> dosingUnits = orderService.getDrugDosingUnits();
+        List<Concept> dispensingUnits = orderService.getDrugDispensingUnits();
+        Set<Concept> quantityUnits = new LinkedHashSet<Concept>();
+        quantityUnits.addAll(dosingUnits);
+        quantityUnits.addAll(dispensingUnits);
+
         Map<String, Object> jsonConfig = new LinkedHashMap<String, Object>();
         jsonConfig.put("patient", convertToFull(patient));
         jsonConfig.put("provider", convertToFull(sessionContext.getCurrentProvider()));
         jsonConfig.put("drugOrderEncounterType", convertToFull(drugOrderEncounterType));
         jsonConfig.put("careSettings", convertToFull(careSettings));
         jsonConfig.put("routes", convertToFull(orderService.getDrugRoutes()));
-        jsonConfig.put("doseUnits", convertToFull(orderService.getDrugDosingUnits()));
+        jsonConfig.put("doseUnits", convertToFull(dosingUnits));
         jsonConfig.put("durationUnits", convertToFull(orderService.getDurationUnits()));
-        jsonConfig.put("quantityUnits", convertToFull(orderService.getDrugDispensingUnits()));
+        jsonConfig.put("quantityUnits", convertToFull(dispensingUnits)); // after TRUNK-4524 is fixed, change this to quantityUnits
         jsonConfig.put("frequencies", convertTo(orderService.getOrderFrequencies(false), new NamedRepresentation("fullconcept")));
         if (careSetting != null) {
             jsonConfig.put("intialCareSetting", careSetting.getUuid());

@@ -75,11 +75,13 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
                         <br/>
 
                         <label ng-class="{ disabled: !newDraftDrugOrder.asNeededCondition }">As needed for</label>
-                        <input ng-model="newDraftDrugOrder.asNeededCondition" type="text" size="30" placeholder="reason"/>
+                        <input ng-model="newDraftDrugOrder.asNeededCondition" type="text" size="30" placeholder="reason (optional)"/>
                         <br/>
 
+                        for
                         <input ng-model="newDraftDrugOrder.duration" type="text" size="5" placeholder="Duration" />
                         <select-concept-from-list ng-model="newDraftDrugOrder.durationUnits" concepts="durationUnits" placeholder="Units" size="5" ></select-concept-from-list>
+                        total
 
                         <br/>
                         <textarea ng-model="newDraftDrugOrder.dosingInstructions" rows="2" cols="60" placeholder="Additional instruction not covered above"></textarea>
@@ -92,6 +94,7 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
 
                 <p ng-show="newDraftDrugOrder.drug && careSetting.careSettingType == 'OUTPATIENT'">
                     <label class="heading">For outpatient orders</label>
+                    Dispense:
                     <input ng-model="newDraftDrugOrder.quantity" type="text" size="5" placeholder="Quantity" />
                     <select-concept-from-list ng-model="newDraftDrugOrder.quantityUnits" concepts="quantityUnits" placeholder="Units" size="5"></select-concept-from-list>
                 </p>
@@ -106,7 +109,10 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
                 <h3>Unsaved Draft Orders ({{ draftDrugOrders.length }})</h3>
                 <table>
                     <tr class="draft-order" ng-repeat="order in draftDrugOrders">
-                        <td>{{ formatActionAndDates(order) }}</td>
+                        <td>
+                            {{ order.action }}
+                            {{ formatDates(order) }}
+                        </td>
                         <td>
                             {{ formatOrder(order) }}
                             <span ng-show="order.action == 'DISCONTINUE'">
@@ -137,7 +143,7 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
             <table>
                 <tr ng-repeat="order in activeDrugOrders">
                     <td ng-class="{ 'will-replace': replacementFor(order) }">
-                        {{ formatActionAndDates(order) }}
+                        {{ formatDates(order) }}
                     </td>
                     <td ng-class="{ 'will-replace': replacementFor(order) }">
                         {{ formatOrder(order) }}
