@@ -15,6 +15,7 @@
     ui.includeJavascript("uicommons", "directives/select-concept-from-list.js")
     ui.includeJavascript("uicommons", "directives/select-order-frequency.js")
     ui.includeJavascript("uicommons", "directives/select-drug.js")
+    ui.includeJavascript("orderentryui", "drugOrderModel.js")
     ui.includeJavascript("orderentryui", "drugOrders.js")
 
     ui.includeCss("uicommons", "ngDialog/ngDialog.min.css")
@@ -27,7 +28,8 @@
             link: '${ui.pageLink("coreapps", "clinicianfacing/patient", [patientId: patient.id])}'},
         { label: "Drug Orders" }
     ]
-    window.drugOrdersConfig = ${ jsonConfig };
+    window.OpenMRS = window.OpenMRS || {};
+    window.OpenMRS.drugOrdersConfig = ${ jsonConfig };
 </script>
 
 ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
@@ -111,10 +113,10 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
                     <tr class="draft-order" ng-repeat="order in draftDrugOrders">
                         <td>
                             {{ order.action }}
-                            {{ formatDates(order) }}
+                            {{ order | dates }}
                         </td>
                         <td>
-                            {{ formatOrder(order) }}
+                            {{ order | instructions }}
                             <span ng-show="order.action == 'DISCONTINUE'">
                                 <br/>
                                 For: <input ng-model="order.orderReasonNonCoded" class="dc-reason" type="text" placeholder="reason" size="40"/>
@@ -143,10 +145,10 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
             <table>
                 <tr ng-repeat="order in activeDrugOrders">
                     <td ng-class="{ 'will-replace': replacementFor(order) }">
-                        {{ formatDates(order) }}
+                        {{ order | dates }}
                     </td>
                     <td ng-class="{ 'will-replace': replacementFor(order) }">
-                        {{ formatOrder(order) }}
+                        {{ order | instructions }}
                     </td>
                     <td class="actions">
                         <a ng-show="!replacementFor(order)" ng-click="reviseOrder(order)">

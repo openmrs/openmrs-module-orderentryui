@@ -8,141 +8,59 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
         });
     }).
 
-    controller('DrugOrdersCtrl', ['$scope', '$window', '$location', '$timeout', 'OrderService', 'EncounterService',
-        function($scope, $window, $location, $timeout, OrderService, EncounterService) {
+    filter('omrsDate', function() {
+        return function(isoString) {
+            return new Date(isoString).toLocaleString();
+        }
+    }).
+
+    filter('dates', ['omrsDateFilter', function(omrsDateFilter) {
+        return function(order) {
+            if (order.action === 'DISCONTINUE' || !order.dateActivated) {
+                return "";
+            } else {
+                var text = omrsDateFilter(order.dateActivated);
+                if (order.autoExpireDate) {
+                    text += ' - ' + omrsDateFilter(order.autoExpireDate);
+                }
+                return text;
+            }
+        }
+    }]).
+
+    filter('instructions', function() {
+        return function(order) {
+            if (order.action == 'DISCONTINUE') {
+                return "Discontinue " + (order.drug ? order.drug : order.concept ).display;
+            }
+            else {
+                var text = order.getDosingType().format(order);
+                if (order.quantity) {
+                    text += ' (Dispense: ' + order.quantity + ' ' + order.quantityUnits.display + ')';
+                }
+                return text;
+            }
+        }
+    }).
+
+    controller('DrugOrdersCtrl', ['$scope', '$window', '$location', '$timeout', 'existingOrders', 'OrderService', 'EncounterService',
+        function($scope, $window, $location, $timeout, existingOrders, OrderService, EncounterService) {
 
             // TODO changing dosingType of a draft order should reset defaults (and discard non-defaulted properties)
-            var dosingTypes = [
-                {
-                    display: 'Standard Dosing',
-                    icon: 'icon-th-large',
-                    javaClass: 'org.openmrs.SimpleDosingInstructions',
-                    defaults: {
-                        dose: null,
-                        doseUnits: null,
-                        frequency: null,
-                        asNeeded: false, // we won't display this in the UI but will set it based on asNeededCondition
-                        asNeededCondition: null,
-                        route: null,
-                        duration: null,
-                        durationUnits: null,
-                        dosingInstructions: null
-                    },
-                    validate: function(order) {
-                        var valid = order.drug && order.dose && order.doseUnits && order.frequency && order.route;
-                        if (order.careSetting.careSettingType === 'OUTPATIENT') {
-                            valid = valid && order.quantity && order.quantityUnits;
-                        }
-                        return valid;
-                    },
-                    format: function(order) {
-                        var str = order.drug.display + ": " +
-                            order.dose + " " + order.doseUnits.display + ", " +
-                            order.frequency.display + ", " +
-                            order.route.display +
-                            (order.asNeeded ? ", as needed" + (order.asNeededCondition ? " for " + order.asNeededCondition : "") : "");
-                        if (order.duration) {
-                            str += ", for " + order.duration + " " + order.durationUnits.display + " total";
-                        }
-                        if (order.dosingInstructions) {
-                            str += " (" + order.dosingInstructions + ")";
-                        }
-                        return str;
-                    }
-                },
-                {
-                    display: 'Free Text',
-                    icon: 'icon-edit',
-                    javaClass: 'org.openmrs.FreeTextDosingInstructions',
-                    defaults: {
-                        dosingInstructions: '',
-                        autoExpireDate: null
-                    },
-                    validate: function(order) {
-                        return order.dosingInstructions;
-                    },
-                    format: function(order) {
-                        return order.drug.display + ": \"" + order.dosingInstructions + "\"";
-                    }
-                }
-            ];
-
-            function getDosingType(order) {
-                return _.findWhere($scope.dosingTypes, { javaClass: order.dosingType });
-            }
-
-            function formatDate(isoString) {
-                return new Date(isoString).toLocaleString();
-            }
 
             function loadExistingOrders() {
+                $scope.activeDrugOrders = { loading: true };
                 OrderService.getOrders({
                     t: 'drugorder',
                     v: 'full',
                     patient: config.patient.uuid,
                     careSetting: $scope.careSetting.uuid
                 }).then(function(results) {
-                    // this REST call only gives active orders, which seems like a bug
-                    $scope.activeDrugOrders = results;
-                    // TODO get past orders
+                    $scope.activeDrugOrders = _.map(results, function(item) { return new OpenMRS.DrugOrderModel(item) });
                 });
+                // TODO also load past orders, once REST supports this
             }
 
-            function careSettingChanged(fromCareSetting, toCareSetting) {
-                // TODO confirm dialog or undo functionality if this is going to discard things
-                loadExistingOrders();
-                $scope.draftDrugOrders = [];
-                $scope.newDraftDrugOrder = createEmptyDraftOrder();
-                $location.search({ patient: config.patient.uuid, careSetting: toCareSetting.uuid });
-            }
-
-            function createEmptyDraftOrder() {
-                // hopefully these can be inferred: encounter, patient, concept, dateActivated
-                var order = angular.extend({}, {
-                    action: 'NEW',
-                    type: 'drugorder',
-                    careSetting: $scope.careSetting,
-                    orderer: config.provider,
-                    commentToFulfiller: '',
-                    drug: '',
-                    dosingType: 'org.openmrs.SimpleDosingInstructions',
-                    numRefills: 0,
-                    quantity: null,
-                    quantityUnits: null,
-                    previousOrder: null
-                });
-                _.each($scope.dosingTypes, function(value) {
-                    angular.extend(order, value.defaults);
-                });
-                return order;
-            }
-
-            function createDiscontinueOrderFor(activeOrder) {
-                return {
-                    action: 'DISCONTINUE',
-                    type: 'drugorder',
-                    careSetting: $scope.careSetting,
-                    orderer: config.provider,
-                    drug: activeOrder.drug,
-                    previousOrder: activeOrder,
-                    orderReasonNonCoded: ''
-                };
-            }
-
-            function createReviseOrderFor(activeOrder) {
-                var obj = angular.extend(
-                    createEmptyDraftOrder(),
-                    _.pick(activeOrder,
-                        'commentToFulfiller', 'drug', 'dosingType', 'numRefills', 'quantity', 'quantityUnits', 'dose',
-                        'doseUnits', 'frequency', 'asNeeded', 'asNeededCondition', 'route', 'duration', 'durationUnits',
-                        'dosingInstructions'
-                    ), {
-                        action: 'REVISE',
-                        previousOrder: activeOrder
-                    }
-                );
-                return obj;
-            }
 
             function replaceWithUuids(obj, props) {
                 var replaced = angular.extend({}, obj);
@@ -158,11 +76,10 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
             $scope.activeDrugOrders = [];
             $scope.pastDrugOrders = [];
             $scope.draftDrugOrders = [];
-            $scope.dosingTypes = dosingTypes;
+            $scope.dosingTypes = OpenMRS.dosingTypes;
 
-            var config = {};
+            var config = OpenMRS.drugOrdersConfig;
             $scope.init = function() {
-                angular.extend(config, $window.drugOrdersConfig);
                 $scope.routes = config.routes;
                 $scope.doseUnits = config.doseUnits;
                 $scope.durationUnits = config.durationUnits;
@@ -173,7 +90,7 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
                     _.findWhere(config.careSettings, { uuid: config.intialCareSetting }) :
                     config.careSettings[0];
 
-                $scope.newDraftDrugOrder = createEmptyDraftOrder();
+                $scope.newDraftDrugOrder = OpenMRS.createEmptyDraftOrder($scope.careSetting);
 
                 loadExistingOrders();
 
@@ -186,21 +103,22 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
             // functions that affect the overall state of the page
 
             $scope.setCareSetting = function(careSetting) {
-                var oldCareSetting = $scope.careSetting
-                if (oldCareSetting != careSetting) {
-                    $scope.careSetting = careSetting;
-                    careSettingChanged(oldCareSetting, careSetting);
-                }
+                // TODO confirm dialog or undo functionality if this is going to discard things
+                $scope.careSetting = careSetting;
+                loadExistingOrders();
+                $scope.draftDrugOrders = [];
+                $scope.newDraftDrugOrder = OpenMRS.createEmptyDraftOrder($scope.careSetting);
+                $location.search({ patient: config.patient.uuid, careSetting: toCareSetting.uuid });
             }
 
 
             // functions that affect the new order being written
 
             $scope.addNewDraftOrder = function() {
-                if (getDosingType($scope.newDraftDrugOrder).validate($scope.newDraftDrugOrder)) {
+                if ($scope.newDraftDrugOrder.getDosingType().validate($scope.newDraftDrugOrder)) {
                     $scope.newDraftDrugOrder.asNeeded = $scope.newDraftDrugOrder.asNeededCondition ? true : false;
                     $scope.draftDrugOrders.push($scope.newDraftDrugOrder);
-                    $scope.newDraftDrugOrder = createEmptyDraftOrder();
+                    $scope.newDraftDrugOrder = OpenMRS.createEmptyDraftOrder($scope.careSetting);
                     $scope.newOrderForm.$setPristine();
                     // TODO upgrade to angular 1.3 and work on form validation
                     // $scope.newOrderForm.$setUntouched();
@@ -210,7 +128,7 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
             }
 
             $scope.cancelNewDraftOrder = function() {
-                $scope.newDraftDrugOrder = createEmptyDraftOrder();
+                $scope.newDraftDrugOrder = OpenMRS.createEmptyDraftOrder($scope.careSetting);
             }
 
 
@@ -262,43 +180,13 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
             // functions that affect existing active orders
 
             $scope.discontinueOrder = function(activeOrder) {
-                var dcOrder = createDiscontinueOrderFor(activeOrder);
+                var dcOrder = activeOrder.createDiscontinueOrder();
                 $scope.draftDrugOrders.push(dcOrder);
                 $scope.$broadcast('added-dc-order', dcOrder);
             }
 
             $scope.reviseOrder = function(activeOrder) {
-                $scope.newDraftDrugOrder = createReviseOrderFor(activeOrder);
-            }
-
-
-            // formatting
-
-            $scope.formatDates = function(order) {
-                if (order.action == 'DISCONTINUE') {
-                    "";
-                } else {
-                    var text = "";
-                    if (order.dateActivated) {
-                        text += formatDate(order.dateActivated);
-                        if (order.autoExpireDate) {
-                            text += ' - ' + formatDate(order.autoExpireDate);
-                        }
-                    }
-                    return text;
-                }
-            }
-
-            $scope.formatOrder = function(order) {
-                if (order.action == 'DISCONTINUE') {
-                    return "Discontinue " + order.drug.display;
-                } else {
-                    var text = getDosingType(order).format(order);
-                    if (order.quantity) {
-                        text += ' (Dispense: ' + order.quantity + ' ' + order.quantityUnits.display + ')';
-                    }
-                    return text;
-                }
+                $scope.newDraftDrugOrder = activeOrder.createRevisionOrder();
             }
 
 
