@@ -1,0 +1,10 @@
+[
+    { // adds drug orders section to patient dashboard
+        "id": "orderentryui.patientDashboard.activeDrugOrders",
+        "extensionPointId": "patientDashboard.secondColumnFragments",
+        "extensionParams": {
+            "provider": "orderentryui",
+            "fragment": "patientdashboard/activeDrugOrders"
+        }
+    }
+]
