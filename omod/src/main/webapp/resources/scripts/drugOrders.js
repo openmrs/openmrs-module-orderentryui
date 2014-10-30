@@ -8,11 +8,11 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
         });
     }).
 
-    filter('omrsDate', function() {
+    filter('omrsDate', ['$filter', function($filter) {
         return function(isoString) {
-            return new Date(isoString).toLocaleString();
+            return $filter('date')(isoString, "dd/MM/yyyy H:mm");
         }
-    }).
+    }]).
 
     filter('dates', ['omrsDateFilter', function(omrsDateFilter) {
         return function(order) {
@@ -43,13 +43,13 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
         }
     }).
 
-    controller('DrugOrdersCtrl', ['$scope', '$window', '$location', '$timeout', 'existingOrders', 'OrderService', 'EncounterService',
-        function($scope, $window, $location, $timeout, existingOrders, OrderService, EncounterService) {
+    controller('DrugOrdersCtrl', ['$scope', '$window', '$location', '$timeout', 'OrderService', 'EncounterService',
+        function($scope, $window, $location, $timeout, OrderService, EncounterService) {
 
             // TODO changing dosingType of a draft order should reset defaults (and discard non-defaulted properties)
 
             function loadExistingOrders() {
-                $scope.activeDrugOrders = { loading: true };
+                $scope.activeDrugOrders = [];
                 OrderService.getOrders({
                     t: 'drugorder',
                     v: 'full',
