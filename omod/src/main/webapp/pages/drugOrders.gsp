@@ -5,7 +5,7 @@
     ui.includeJavascript("uicommons", "angular-app.js")
     ui.includeJavascript("uicommons", "angular-resource.min.js")
     ui.includeJavascript("uicommons", "angular-common.js")
-    ui.includeJavascript("uicommons", "angular-ui/ui-bootstrap-tpls-0.6.0.min.js")
+    ui.includeJavascript("uicommons", "angular-ui/ui-bootstrap-tpls-0.11.2.js")
     ui.includeJavascript("uicommons", "ngDialog/ngDialog.js")
     ui.includeJavascript("uicommons", "filters/display.js")
     ui.includeJavascript("uicommons", "services/conceptService.js")
@@ -47,11 +47,11 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
 
         <div class="ui-tabs-panel ui-widget-content">
 
-            <form id="new-order" class="sized-inputs" name="newOrderForm" novalidate>
+            <form id="new-order" class="sized-inputs css-form" name="newOrderForm" novalidate>
                 <p>
                     <span ng-show="newDraftDrugOrder.action === 'NEW'">
                         <label>New order for:</label>
-                        <select-drug ng-model="newDraftDrugOrder.drug" placeholder="Drug" size="40" required></select-drug>
+                        <select-drug ng-model="newDraftDrugOrder.drug" placeholder="Drug" size="40"></select-drug>
                     </span>
                     <strong ng-show="newDraftDrugOrder.action === 'REVISE'">
                         Revised order for: {{ newDraftDrugOrder.drug.display }}
@@ -69,40 +69,41 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
                         </a>
                     </label>
 
-                    <span ng-show="newDraftDrugOrder.dosingType == 'org.openmrs.SimpleDosingInstructions'">
-                        <input ng-model="newDraftDrugOrder.dose" type="text" size="5" placeholder="Dose"/>
-                        <select-concept-from-list ng-model="newDraftDrugOrder.doseUnits" concepts="doseUnits" placeholder="Units" size="5" ></select-concept-from-list>
-                        <select-order-frequency ng-model="newDraftDrugOrder.frequency" frequencies="frequencies" placeholder="Frequency" ></select-order-frequency>
-                        <select-concept-from-list ng-model="newDraftDrugOrder.route" concepts="routes" placeholder="Route" size="20"></select-concept-from-list>
+                    <span ng-if="newDraftDrugOrder.dosingType == 'org.openmrs.SimpleDosingInstructions'">
+                        <input ng-model="newDraftDrugOrder.dose" type="number" placeholder="Dose" min="0" required/>
+                        <select-concept-from-list ng-model="newDraftDrugOrder.doseUnits" concepts="doseUnits" placeholder="Units" size="5" required></select-concept-from-list>
+
+                        <select-order-frequency ng-model="newDraftDrugOrder.frequency" frequencies="frequencies" placeholder="Frequency" required></select-order-frequency>
+
+                        <select-concept-from-list ng-model="newDraftDrugOrder.route" concepts="routes" placeholder="Route" size="20" required></select-concept-from-list>
                         <br/>
 
                         <label ng-class="{ disabled: !newDraftDrugOrder.asNeededCondition }">As needed for</label>
                         <input ng-model="newDraftDrugOrder.asNeededCondition" type="text" size="30" placeholder="reason (optional)"/>
                         <br/>
 
-                        for
-                        <input ng-model="newDraftDrugOrder.duration" type="text" size="5" placeholder="Duration" />
-                        <select-concept-from-list ng-model="newDraftDrugOrder.durationUnits" concepts="durationUnits" placeholder="Units" size="5" ></select-concept-from-list>
-                        total
-
+                        <label ng-class="{ disabled: !newDraftDrugOrder.duration }">For</label>
+                        <input ng-model="newDraftDrugOrder.duration" type="number" min="0" placeholder="Duration" />
+                        <select-concept-from-list ng-model="newDraftDrugOrder.durationUnits" concepts="durationUnits" placeholder="Units" size="8" required-if="newDraftDrugOrder.duration"></select-concept-from-list>
+                        <label ng-class="{ disabled: !newDraftDrugOrder.duration }">total</label>
                         <br/>
                         <textarea ng-model="newDraftDrugOrder.dosingInstructions" rows="2" cols="60" placeholder="Additional instruction not covered above"></textarea>
                     </span>
 
-                    <span ng-show="newDraftDrugOrder.dosingType == 'org.openmrs.FreeTextDosingInstructions'">
+                    <span ng-if="newDraftDrugOrder.dosingType == 'org.openmrs.FreeTextDosingInstructions'">
                         <textarea ng-model="newDraftDrugOrder.dosingInstructions" rows="4" cols="60" placeholder="Complete instructions"></textarea>
                     </span>
                 </p>
 
-                <p ng-show="newDraftDrugOrder.drug && careSetting.careSettingType == 'OUTPATIENT'">
+                <p ng-if="newDraftDrugOrder.drug && careSetting.careSettingType == 'OUTPATIENT'">
                     <label class="heading">For outpatient orders</label>
                     Dispense:
-                    <input ng-model="newDraftDrugOrder.quantity" type="text" size="5" placeholder="Quantity" />
-                    <select-concept-from-list ng-model="newDraftDrugOrder.quantityUnits" concepts="quantityUnits" placeholder="Units" size="5"></select-concept-from-list>
+                    <input ng-model="newDraftDrugOrder.quantity" type="number" min="0" placeholder="Quantity" required/>
+                    <select-concept-from-list ng-model="newDraftDrugOrder.quantityUnits" concepts="quantityUnits" placeholder="Units" size="8"></select-concept-from-list>
                 </p>
 
                 <p ng-show="newDraftDrugOrder.drug">
-                    <button type="submit" class="confirm right" ng-click="addNewDraftOrder()">Add</button>
+                    <button type="submit" class="confirm right" ng-disabled="newOrderForm.\$invalid" ng-click="addNewDraftOrder()">Add</button>
                     <button class="cancel" ng-click="cancelNewDraftOrder()">Cancel</button>
                 </p>
             </form>
@@ -132,8 +133,9 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
                 <div class="actions">
                     <div class="signature">
                         Signing as ${ ui.format(sessionContext.currentProvider) } on (auto-generated timestamp)
+                        <img ng-show="loading" src="${ ui.resourceLink("uicommons", "images/spinner.gif") }"/>
                     </div>
-                    <button class="confirm right" ng-click="signAndSaveDraftDrugOrders()">Sign and Save</button>
+                    <button class="confirm right" ng-disabled="loading" ng-click="signAndSaveDraftDrugOrders()">Sign and Save</button>
                     <button class="cancel" ng-click="cancelAllDraftDrugOrders()">
                         {{ draftDrugOrders.length > 1 ? "Discard All" : "Discard" }}
                     </button>

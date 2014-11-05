@@ -72,6 +72,7 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
                 return replaced;
             }
 
+            $scope.loading = false;
 
             $scope.activeDrugOrders = [];
             $scope.pastDrugOrders = [];
@@ -108,7 +109,7 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
                 loadExistingOrders();
                 $scope.draftDrugOrders = [];
                 $scope.newDraftDrugOrder = OpenMRS.createEmptyDraftOrder($scope.careSetting);
-                $location.search({ patient: config.patient.uuid, careSetting: toCareSetting.uuid });
+                $location.search({ patient: config.patient.uuid, careSetting: careSetting.uuid });
             }
 
 
@@ -121,7 +122,7 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
                     $scope.newDraftDrugOrder = OpenMRS.createEmptyDraftOrder($scope.careSetting);
                     $scope.newOrderForm.$setPristine();
                     // TODO upgrade to angular 1.3 and work on form validation
-                    // $scope.newOrderForm.$setUntouched();
+                    $scope.newOrderForm.$setUntouched();
                 } else {
                     emr.errorMessage("Invalid");
                 }
@@ -169,10 +170,12 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
                     orders: orders
                 };
 
+                $scope.loading = true;
                 EncounterService.saveEncounter(encounter).then(function(result) {
                     location.href = location.href;
                 }, function(errorResponse) {
                     emr.errorMessage(errorResponse.data.error.message);
+                    $scope.loading = false;
                 });
             }
 

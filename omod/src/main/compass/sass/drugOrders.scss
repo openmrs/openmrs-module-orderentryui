@@ -10,12 +10,16 @@
   color: $subtleText;
 }
 
-.ng-form {
+form.css-form {
   input.ng-invalid.ng-touched {
     background-color: #FA787E;
     &:focus {
       background-color: white;
     }
+  }
+
+  input[type="number"] {
+    width: 55px;
   }
 }
 
@@ -68,6 +72,15 @@ form#new-order {
   .signature {
     text-align: right;
     color: $subtleText;
+  }
+}
+
+.css-form {
+  .ng-dirty.ng-invalid {
+    background-color: $error;
+    &:focus {
+      background-color: white;
+    }
   }
 }
 
