@@ -143,8 +143,9 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
             </div>
 
             <h3>Active Drug Orders</h3>
-            <span ng-hide="activeDrugOrders.length > 0">None</span>
-            <table>
+            <span ng-show="activeDrugOrders.loading">${ ui.message("uicommons.loading.placeholder") }</span>
+            <span ng-hide="activeDrugOrders.loading || activeDrugOrders.length > 0">None</span>
+            <table ng-hide="activeDrugOrders.loading">
                 <tr ng-repeat="order in activeDrugOrders">
                     <td ng-class="{ 'will-replace': replacementFor(order) }">
                         {{ order | dates }}
@@ -167,7 +168,21 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
             </table>
 
             <h3>Past Drug Orders</h3>
-            To Do
+            <span ng-show="pastDrugOrders.loading">${ ui.message("uicommons.loading.placeholder") }</span>
+            <span ng-hide="pastDrugOrders.loading || pastDrugOrders.length > 0">None</span>
+            <table id="past-drug-orders" ng-hide="pastDrugOrders.loading">
+                <tr ng-repeat="order in pastDrugOrders">
+                    <td>
+                        {{ replacementForPastOrder(order) | replacement }}
+                    </td>
+                    <td>
+                        {{ order | dates }}
+                    </td>
+                    <td>
+                        {{ order | instructions }}
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
 

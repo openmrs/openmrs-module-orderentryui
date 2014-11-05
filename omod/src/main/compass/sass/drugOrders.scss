@@ -75,6 +75,14 @@ form#new-order {
   }
 }
 
+#past-drug-orders {
+  color: $darkerGrey;
+
+  &:hover {
+    color: $text;
+  }
+}
+
 .css-form {
   .ng-dirty.ng-invalid {
     background-color: $error;

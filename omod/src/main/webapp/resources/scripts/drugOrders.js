@@ -16,11 +16,17 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
 
     filter('dates', ['omrsDateFilter', function(omrsDateFilter) {
         return function(order) {
+            if (!order || typeof order != 'object') {
+                return "";
+            }
             if (order.action === 'DISCONTINUE' || !order.dateActivated) {
                 return "";
             } else {
                 var text = omrsDateFilter(order.dateActivated);
-                if (order.autoExpireDate) {
+                if (order.dateStopped) {
+                    text += ' - ' + omrsDateFilter(order.dateStopped);
+                }
+                else if (order.autoExpireDate) {
                     text += ' - ' + omrsDateFilter(order.autoExpireDate);
                 }
                 return text;
@@ -30,6 +36,9 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
 
     filter('instructions', function() {
         return function(order) {
+            if (!order || typeof order != 'object') {
+                return "";
+            }
             if (order.action == 'DISCONTINUE') {
                 return "Discontinue " + (order.drug ? order.drug : order.concept ).display;
             }
@@ -43,13 +52,23 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
         }
     }).
 
+    filter('replacement', ['omrsDateFilter', function(omrsDateFilter) {
+        // given the order that replaced the one we are displaying, display the details of the replacement
+        return function(replacementOrder) {
+            if (!replacementOrder) {
+                return "";
+            }
+            return replacementOrder.action + "d on " + omrsDateFilter(replacementOrder.dateActivated);
+        }
+    }]).
+
     controller('DrugOrdersCtrl', ['$scope', '$window', '$location', '$timeout', 'OrderService', 'EncounterService',
         function($scope, $window, $location, $timeout, OrderService, EncounterService) {
 
             // TODO changing dosingType of a draft order should reset defaults (and discard non-defaulted properties)
 
             function loadExistingOrders() {
-                $scope.activeDrugOrders = [];
+                $scope.activeDrugOrders = { loading: true };
                 OrderService.getOrders({
                     t: 'drugorder',
                     v: 'full',
@@ -58,7 +77,17 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
                 }).then(function(results) {
                     $scope.activeDrugOrders = _.map(results, function(item) { return new OpenMRS.DrugOrderModel(item) });
                 });
-                // TODO also load past orders, once REST supports this
+
+                $scope.pastDrugOrders = { loading: true };
+                OrderService.getOrders({
+                    t: 'drugorder',
+                    v: 'full',
+                    patient: config.patient.uuid,
+                    careSetting: $scope.careSetting.uuid,
+                    status: 'inactive'
+                }).then(function(results) {
+                    $scope.pastDrugOrders = _.map(results, function(item) { return new OpenMRS.DrugOrderModel(item) });
+                });
             }
 
 
@@ -74,8 +103,8 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
 
             $scope.loading = false;
 
-            $scope.activeDrugOrders = [];
-            $scope.pastDrugOrders = [];
+            $scope.activeDrugOrders = { loading: true };
+            $scope.pastDrugOrders = { loading: true };
             $scope.draftDrugOrders = [];
             $scope.dosingTypes = OpenMRS.dosingTypes;
 
@@ -153,6 +182,13 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
              */
             $scope.replacementFor = function(activeOrder) {
                 return _.findWhere(_.union($scope.draftDrugOrders, [$scope.newDraftDrugOrder]), { previousOrder: activeOrder });
+            }
+
+            $scope.replacementForPastOrder = function(pastOrder) {
+                var candidates = _.union($scope.activeDrugOrders, $scope.pastDrugOrders)
+                return _.find(candidates, function(item) {
+                    return item.previousOrder && item.previousOrder.uuid === pastOrder.uuid;
+                });
             }
 
             $scope.signAndSaveDraftDrugOrders = function() {
