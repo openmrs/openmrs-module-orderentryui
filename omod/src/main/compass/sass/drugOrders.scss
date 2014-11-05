@@ -76,11 +76,7 @@ form#new-order {
 }
 
 #past-drug-orders {
-  color: $darkerGrey;
-
-  &:hover {
-    color: $text;
-  }
+  font-size: 0.9em;
 }
 
 .css-form {

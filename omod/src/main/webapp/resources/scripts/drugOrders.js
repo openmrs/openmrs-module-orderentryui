@@ -58,7 +58,7 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
             if (!replacementOrder) {
                 return "";
             }
-            return replacementOrder.action + "d on " + omrsDateFilter(replacementOrder.dateActivated);
+            return emr.message("orderentryui.pastAction." + replacementOrder.action) + ", " + omrsDateFilter(replacementOrder.dateActivated);
         }
     }]).
 

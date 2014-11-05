@@ -32,6 +32,11 @@
     window.OpenMRS.drugOrdersConfig = ${ jsonConfig };
 </script>
 
+${ ui.includeFragment("appui", "messages", [ codes: [
+        "orderentryui.pastAction.REVISE",
+        "orderentryui.pastAction.DISCONTINUE"
+] ])}
+
 ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
 
 <div id="drug-orders-app" ng-controller="DrugOrdersCtrl" ng-init='init()'>
