@@ -1,5 +1,5 @@
 angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.filters', 'uicommons.widget.select-concept-from-list',
-    'uicommons.widget.select-order-frequency', 'uicommons.widget.select-drug']).
+    'uicommons.widget.select-order-frequency', 'uicommons.widget.select-drug', 'session', 'orderEntry']).
 
     config(function($locationProvider) {
         $locationProvider.html5Mode({
@@ -8,13 +8,7 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
         });
     }).
 
-    filter('omrsDate', ['$filter', function($filter) {
-        return function(isoString) {
-            return $filter('date')(isoString, "dd/MM/yyyy H:mm");
-        }
-    }]).
-
-    filter('dates', ['omrsDateFilter', function(omrsDateFilter) {
+    filter('dates', ['serverDateFilter', function(serverDateFilter) {
         return function(order) {
             if (!order || typeof order != 'object') {
                 return "";
@@ -22,12 +16,12 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
             if (order.action === 'DISCONTINUE' || !order.dateActivated) {
                 return "";
             } else {
-                var text = omrsDateFilter(order.dateActivated);
+                var text = serverDateFilter(order.dateActivated);
                 if (order.dateStopped) {
-                    text += ' - ' + omrsDateFilter(order.dateStopped);
+                    text += ' - ' + serverDateFilter(order.dateStopped);
                 }
                 else if (order.autoExpireDate) {
-                    text += ' - ' + omrsDateFilter(order.autoExpireDate);
+                    text += ' - ' + serverDateFilter(order.autoExpireDate);
                 }
                 return text;
             }
@@ -52,18 +46,24 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
         }
     }).
 
-    filter('replacement', ['omrsDateFilter', function(omrsDateFilter) {
+    filter('replacement', ['serverDateFilter', function(serverDateFilter) {
         // given the order that replaced the one we are displaying, display the details of the replacement
         return function(replacementOrder) {
             if (!replacementOrder) {
                 return "";
             }
-            return emr.message("orderentryui.pastAction." + replacementOrder.action) + ", " + omrsDateFilter(replacementOrder.dateActivated);
+            return emr.message("orderentryui.pastAction." + replacementOrder.action) + ", " + serverDateFilter(replacementOrder.dateActivated);
         }
     }]).
 
-    controller('DrugOrdersCtrl', ['$scope', '$window', '$location', '$timeout', 'OrderService', 'EncounterService',
-        function($scope, $window, $location, $timeout, OrderService, EncounterService) {
+    controller('DrugOrdersCtrl', ['$scope', '$window', '$location', '$timeout', 'OrderService', 'EncounterService', 'SessionInfo', "OrderEntryService",
+        function($scope, $window, $location, $timeout, OrderService, EncounterService, SessionInfo, OrderEntryService) {
+
+            var orderContext = {};
+            SessionInfo.get().$promise.then(function(info) {
+                orderContext.provider = info.currentProvider;
+                $scope.newDraftDrugOrder = OpenMRS.createEmptyDraftOrder(orderContext);
+            });
 
             // TODO changing dosingType of a draft order should reset defaults (and discard non-defaulted properties)
 
@@ -120,7 +120,7 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
                     _.findWhere(config.careSettings, { uuid: config.intialCareSetting }) :
                     config.careSettings[0];
 
-                $scope.newDraftDrugOrder = OpenMRS.createEmptyDraftOrder($scope.careSetting);
+                orderContext.careSetting = $scope.careSetting;
 
                 loadExistingOrders();
 
@@ -135,9 +135,10 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
             $scope.setCareSetting = function(careSetting) {
                 // TODO confirm dialog or undo functionality if this is going to discard things
                 $scope.careSetting = careSetting;
+                orderContext.careSetting = $scope.careSetting;
                 loadExistingOrders();
                 $scope.draftDrugOrders = [];
-                $scope.newDraftDrugOrder = OpenMRS.createEmptyDraftOrder($scope.careSetting);
+                $scope.newDraftDrugOrder = OpenMRS.createEmptyDraftOrder(orderContext);
                 $location.search({ patient: config.patient.uuid, careSetting: careSetting.uuid });
             }
 
@@ -148,7 +149,7 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
                 if ($scope.newDraftDrugOrder.getDosingType().validate($scope.newDraftDrugOrder)) {
                     $scope.newDraftDrugOrder.asNeeded = $scope.newDraftDrugOrder.asNeededCondition ? true : false;
                     $scope.draftDrugOrders.push($scope.newDraftDrugOrder);
-                    $scope.newDraftDrugOrder = OpenMRS.createEmptyDraftOrder($scope.careSetting);
+                    $scope.newDraftDrugOrder = OpenMRS.createEmptyDraftOrder(orderContext);
                     $scope.newOrderForm.$setPristine();
                     // TODO upgrade to angular 1.3 and work on form validation
                     $scope.newOrderForm.$setUntouched();
@@ -158,7 +159,7 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
             }
 
             $scope.cancelNewDraftOrder = function() {
-                $scope.newDraftDrugOrder = OpenMRS.createEmptyDraftOrder($scope.careSetting);
+                $scope.newDraftDrugOrder = OpenMRS.createEmptyDraftOrder(orderContext);
             }
 
 
@@ -181,7 +182,10 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
              * Finds the replacement order for a given active order (e.g. the order that will DC or REVISE it)
              */
             $scope.replacementFor = function(activeOrder) {
-                return _.findWhere(_.union($scope.draftDrugOrders, [$scope.newDraftDrugOrder]), { previousOrder: activeOrder });
+                var lookAt = $scope.newDraftDrugOrder ?
+                    _.union($scope.draftDrugOrders, [$scope.newDraftDrugOrder]) :
+                    $scope.draftDrugOrders;
+                return _.findWhere(lookAt, { previousOrder: activeOrder });
             }
 
             $scope.replacementForPastOrder = function(pastOrder) {
@@ -192,34 +196,27 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
             }
 
             $scope.signAndSaveDraftDrugOrders = function() {
-                var orders = _.map($scope.draftDrugOrders, function(order) {
-                    return replaceWithUuids(order, ['drug', 'doseUnits', 'frequency', 'quantityUnits',
-                        'durationUnits', 'route', 'previousOrder', 'careSetting', 'patient', 'concept', 'orderer',
-                        'orderReason'
-                    ]);
-                });
-                var encounter = {
-                    patient: config.patient.uuid, // only submit the UUID because of RESTWS-459
-                    encounterType: config.drugOrderEncounterType.uuid, // only submit the UUID because of RESTWS-460
-                    location: null, // TODO
-                    provider: config.provider.person.uuid, // submit the person because of RESTWS-443
-                    orders: orders
+                var encounterContext = {
+                    patient: config.patient,
+                    encounterType: config.drugOrderEncounterType,
+                    location: null // TODO
                 };
 
                 $scope.loading = true;
-                EncounterService.saveEncounter(encounter).then(function(result) {
-                    location.href = location.href;
-                }, function(errorResponse) {
-                    emr.errorMessage(errorResponse.data.error.message);
-                    $scope.loading = false;
-                });
+                OrderEntryService.signAndSaveDrugOrders($scope.draftDrugOrders, encounterContext)
+                    .$promise.then(function(result) {
+                        location.href = location.href;
+                    }, function(errorResponse) {
+                        emr.errorMessage(errorResponse.data.error.message);
+                        $scope.loading = false;
+                    });
             }
 
 
             // functions that affect existing active orders
 
             $scope.discontinueOrder = function(activeOrder) {
-                var dcOrder = activeOrder.createDiscontinueOrder();
+                var dcOrder = activeOrder.createDiscontinueOrder(orderContext);
                 $scope.draftDrugOrders.push(dcOrder);
                 $scope.$broadcast('added-dc-order', dcOrder);
             }

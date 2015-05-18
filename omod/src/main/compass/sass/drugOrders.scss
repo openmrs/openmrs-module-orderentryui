@@ -40,14 +40,14 @@ form#new-order {
   padding-left: 10px;
   padding-right: 10px;
 
-  .instructions.heading {
+  .dosing-type {
     span {
-      margin-right: 100px;
+      margin-right: 15px;
     }
     a {
-      font-size: 0.7em;
+      font-size: 0.9em;
       display: inline-block;
-      width: 150px;
+      padding-right: 15px;
       &.active {
         font-family: $primaryBoldFont;
         font-weight: normal;
@@ -100,4 +100,12 @@ form.sized-inputs {
       display: block;
     }
   }
+}
+
+div.editing-draft-order {
+  border: 1px $darkerGrey solid;
+  background-color: $lighterGrey;
+  padding: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }

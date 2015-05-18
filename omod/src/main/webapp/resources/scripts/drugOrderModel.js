@@ -3,6 +3,24 @@
 
     var OpenMRS = window.OpenMRS;
 
+    // helper to use a fuller representation rather than a ref one
+    function replaceWithReferenceData(object, property, referenceList) {
+        var ref = object[property];
+        if (ref) {
+            var replacement = _.findWhere(referenceList, {uuid: ref.uuid});
+            if (replacement) {
+                object[property] = replacement;
+            }
+        }
+    }
+
+    OpenMRS.snomedCodes = {
+        tablet: "385055001",
+        capsule: "428641000",
+
+        oralAdministration: "26643006"
+    }
+
     OpenMRS.dosingTypes = [
         {
             display: 'Standard Dosing',
@@ -26,6 +44,9 @@
                 }
                 return valid;
             },
+            cleanup: function(order) {
+                order.asNeeded = order.asNeededCondition ? true : false;
+            },
             format: function(order) {
                 var str = order.drug.display + ": " +
                     order.dose + " " + order.doseUnits.display + ", " +
@@ -39,6 +60,22 @@
                     str += " (" + order.dosingInstructions + ")";
                 }
                 return str;
+            },
+            inferFields: function(order, orderContext) {
+                if (!order.drug || !order.drug.dosageForm || !orderContext || !orderContext.config) {
+                    return;
+                }
+                // if drug.dosageForm is Tablet => route = Oral, dose = Tablet
+                var sameDoseUnitAsForm = false;
+                if (emr.hasMapping(order.drug.dosageForm, "SNOMED CT", OpenMRS.snomedCodes.tablet)) {
+                    if (!order.route) {
+                        order.route = emr.findConceptWithMapping(orderContext.config.drugRoutes, "SNOMED CT", OpenMRS.snomedCodes.oralAdministration);
+                    }
+                    sameDoseUnitAsForm = true;
+                }
+                if (sameDoseUnitAsForm && !order.doseUnits) {
+                    order.doseUnits = _.findWhere(orderContext.config.drugDosingUnits, {uuid: order.drug.dosageForm.uuid});
+                }
             }
         },
         {
@@ -60,17 +97,18 @@
 
     OpenMRS.DrugOrderModel = function(obj) {
         if (obj === undefined) {
-            console.log("here");
+            console.log("Error: null obj");
         }
         $.extend(this, obj);
     }
 
-    OpenMRS.createEmptyDraftOrder = function(careSetting) {
+    OpenMRS.createEmptyDraftOrder = function(orderContext) {
         var obj = $.extend({}, {
+            editing: true,
             action: 'NEW',
             type: 'drugorder',
-            careSetting: careSetting,
-            orderer: OpenMRS.drugOrdersConfig.provider,
+            careSetting: orderContext.careSetting,
+            orderer: orderContext.provider,
             commentToFulfiller: '',
             drug: '',
             dosingType: 'org.openmrs.SimpleDosingInstructions',
@@ -89,25 +127,40 @@
 
         constructor: OpenMRS.DrugOrderModel,
 
-        createDiscontinueOrder: function() {
+        inferFields: function(orderContext) {
+            var dt = this.getDosingType();
+            if (dt && dt.inferFields) {
+                dt.inferFields(this, orderContext);
+            }
+        },
+
+        createDiscontinueOrder: function(orderContext) {
             return new OpenMRS.DrugOrderModel({
                 action: 'DISCONTINUE',
                 type: 'drugorder',
                 careSetting: this.careSetting,
-                orderer: OpenMRS.drugOrdersConfig.provider,
+                orderer: orderContext.provider,
                 drug: this.drug,
                 previousOrder: this,
                 orderReasonNonCoded: ''
             });
         },
 
-        createRevisionOrder: function() {
+        createRevisionOrder: function(orderContext) {
             var draft = OpenMRS.createEmptyDraftOrder(this.careSetting);
             var copyProperties = _.pick(this,
                 'commentToFulfiller', 'drug', 'dosingType', 'numRefills', 'quantity', 'quantityUnits', 'dose',
                 'doseUnits', 'frequency', 'asNeeded', 'asNeededCondition', 'route', 'duration', 'durationUnits',
-                'dosingInstructions'
+                'dosingInstructions', 'careSetting'
             );
+            if (orderContext && orderContext.config) {
+                replaceWithReferenceData(copyProperties, 'quantityUnits', orderContext.config.drugDispensingUnits);
+                replaceWithReferenceData(copyProperties, 'doseUnits', orderContext.config.drugDosingUnits);
+                replaceWithReferenceData(copyProperties, 'frequency', orderContext.config.orderFrequencies);
+                replaceWithReferenceData(copyProperties, 'route', orderContext.config.drugRoutes);
+                replaceWithReferenceData(copyProperties, 'durationUnits', orderContext.config.durationUnits);
+                replaceWithReferenceData(copyProperties, 'doseUnits', orderContext.config.drugDosingUnits);
+            }
             var override = {
                 action: 'REVISE',
                 previousOrder: this

@@ -18,7 +18,7 @@
         <h3>${ ui.message("orderentryui.patientdashboard.activeDrugOrders").toUpperCase() }</h3>
         <% if (context.hasPrivilege("App: orderentryui.drugOrders")) { %>
             <a href="${ ui.pageLink("orderentryui", "drugOrders", [patient: patient.id, returnUrl: ui.thisUrl()]) }">
-                <i class="icon-pencil edit-action right" title="${ ui.message("coreapps.edit") }"></i>
+                <i class="icon-share-alt edit-action right" title="${ ui.message("coreapps.edit") }"></i>
             </a>
         <% } %>
     </div>
