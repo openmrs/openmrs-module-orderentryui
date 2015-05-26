@@ -36,7 +36,7 @@ div.actions {
 }
 
 form#new-order {
-  background-color: $lighterGrey;
+  background-color: $white;
   padding-left: 10px;
   padding-right: 10px;
 
@@ -105,7 +105,6 @@ form.sized-inputs {
 div.editing-draft-order {
   border: 1px $darkerGrey solid;
   background-color: $lighterGrey;
-  padding: 5px;
   margin-top: 5px;
   margin-bottom: 5px;
 }
