@@ -136,6 +136,22 @@ angular.module("orderEntry", ['orderService', 'encounterService', 'session'])
         }
 
         return {
+            getOrdersForEncounter: function(encounterRef) {
+                var ret = [];
+                var deferred = $q.defer();
+                ret.$promise = deferred.promise;
+                ret.$resolved = false;
+                Encounter.get({ uuid: encounterRef.uuid, v: "custom:(orders:full)" })
+                    .$promise.then(function(encounter) {
+                        _.each(encounter.orders, function(it) {
+                            // TODO handle non-drug orders
+                            ret.push(new OpenMRS.DrugOrderModel(it));
+                        });
+                        deferred.resolve(ret);
+                        ret.$resolved = true;
+                    });
+                return ret;
+            },
             getActiveDrugOrders: function(patient, careSetting) {
                 var ret = [];
                 var deferred = $q.defer();
