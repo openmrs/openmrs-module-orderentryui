@@ -203,7 +203,7 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
                 };
 
                 $scope.loading = true;
-                OrderEntryService.signAndSaveDrugOrders($scope.draftDrugOrders, encounterContext)
+                OrderEntryService.signAndSave({ draftOrders: $scope.draftDrugOrders }, encounterContext)
                     .$promise.then(function(result) {
                         location.href = location.href;
                     }, function(errorResponse) {

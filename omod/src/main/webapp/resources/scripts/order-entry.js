@@ -38,7 +38,8 @@ angular.module("orderEntry", ['orderService', 'encounterService', 'session'])
                 durationUnits: [],
                 testSpecimenSources: []
             },
-            draftOrders: []
+            draftOrders: [],
+            draftPlanText: ""
         };
 
         var of = OrderFrequency.get({v:"fullconcept"});
@@ -104,7 +105,7 @@ angular.module("orderEntry", ['orderService', 'encounterService', 'session'])
                 }
             },
             canSaveDrafts: function() {
-                return orderContext.draftOrders.length > 0 &&
+                return (orderContext.draftOrders.length > 0 || orderContext.draftPlanText) &&
                     _.every(orderContext.draftOrders, function(it) {
                         if (it.editing) {
                             return false;
@@ -203,14 +204,14 @@ angular.module("orderEntry", ['orderService', 'encounterService', 'session'])
                 return ret;
             },
 
-            signAndSaveDrugOrders: function(draftOrders, encounterContext) {
+            signAndSave: function(orderContext, encounterContext) {
                 var provider = SessionInfo.get().currentProvider;
-                _.each(draftOrders, function(it) {
+                _.each(orderContext.draftOrders, function(it) {
                     if (it.getDosingType && it.getDosingType() && it.getDosingType().cleanup) {
                         it.getDosingType().cleanup(it);
                     }
                 });
-                var orders = _.map(draftOrders, function(order) {
+                var orders = _.map(orderContext.draftOrders, function(order) {
                     var transformed = replaceWithUuids(order, ['drug', 'doseUnits', 'frequency', 'quantityUnits',
                         'durationUnits', 'route', 'previousOrder', 'careSetting', 'patient', 'concept', 'orderer',
                         'orderReason'
@@ -227,8 +228,16 @@ angular.module("orderEntry", ['orderService', 'encounterService', 'session'])
                     visit: uuidIfNotNull(encounterContext.visit),
                     location: uuidIfNotNull(encounterContext.location),
                     provider: provider.person.uuid, // submit the person because of RESTWS-443
-                    orders: orders
+                    orders: orders,
+                    obs: []
                 };
+
+                if (orderContext.draftPlanText) {
+                    encounter.obs.push({
+                        concept: "CIEL:162749",
+                        value: orderContext.draftPlanText
+                    });
+                }
 
                 var saved = Encounter.save(encounter);
                 saved.$promise.then(function(encounter) {
