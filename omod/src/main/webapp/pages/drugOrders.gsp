@@ -17,7 +17,7 @@
     ui.includeJavascript("uicommons", "directives/select-concept-from-list.js")
     ui.includeJavascript("uicommons", "directives/select-order-frequency.js")
     ui.includeJavascript("uicommons", "directives/select-drug.js")
-    ui.includeJavascript("orderentryui", "drugOrderModel.js")
+    ui.includeJavascript("orderentryui", "order-model.js")
     ui.includeJavascript("orderentryui", "order-entry.js")
     ui.includeJavascript("orderentryui", "drugOrders.js")
 

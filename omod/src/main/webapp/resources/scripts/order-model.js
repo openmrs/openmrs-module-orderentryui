@@ -1,7 +1,4 @@
-(function($, _) {
-    window.OpenMRS = window.OpenMRS || {};
-
-    var OpenMRS = window.OpenMRS;
+(function($, _, OpenMRS) {
 
     // helper to use a fuller representation rather than a ref one
     function replaceWithReferenceData(object, property, referenceList) {
@@ -182,5 +179,27 @@
         }
     };
 
-})(jQuery, _);
+
+    // === TEST ORDERS ===
+
+    OpenMRS.TestOrderModel = function(obj) {
+        $.extend(this, obj);
+    };
+
+    OpenMRS.TestOrderModel.prototype = {
+        constructor: OpenMRS.TestOrderModel
+    };
+
+    OpenMRS.newTestOrder = function(orderContext) {
+        return new OpenMRS.TestOrderModel({
+            editing: false,
+            action: 'NEW',
+            type: 'testorder',
+            careSetting: orderContext.careSetting,
+            orderer: orderContext.provider,
+        });
+    };
+
+
+})(jQuery, _, window.OpenMRS = window.OpenMRS||{});
 
