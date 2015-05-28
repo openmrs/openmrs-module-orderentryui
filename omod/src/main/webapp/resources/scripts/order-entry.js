@@ -228,13 +228,17 @@ angular.module("orderEntry", ['orderService', 'encounterService', 'session'])
                 var encounter = {
                     patient: encounterContext.patient.uuid,
                     encounterType: encounterContext.encounterType.uuid,
-                    encounterDatetime: encounterContext.encounterDatetime,
                     visit: uuidIfNotNull(encounterContext.visit),
                     location: uuidIfNotNull(encounterContext.location),
                     provider: provider.person.uuid, // submit the person because of RESTWS-443
                     orders: orders,
                     obs: []
                 };
+                // If we don't specify the encounter datetime here, the server will default to now().
+                // (If this is for a past visit with a stopDatetime, this will fail.)
+                if (encounterContext.encounterDatetime) {
+                    encounter.encounterDatetime = encounterContext.encounterDatetime;
+                }
 
                 if (orderContext.draftPlanText) {
                     encounter.obs.push({
