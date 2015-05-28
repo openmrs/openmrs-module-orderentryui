@@ -104,8 +104,11 @@ angular.module("orderEntry", ['orderService', 'encounterService', 'session'])
                     orderContext.draftOrders.splice(index, 1);
                 }
             },
+            hasUnsavedData: function() {
+                return orderContext.draftOrders.length > 0 || orderContext.draftPlanText;
+            },
             canSaveDrafts: function() {
-                return (orderContext.draftOrders.length > 0 || orderContext.draftPlanText) &&
+                return this.hasUnsavedData() &&
                     _.every(orderContext.draftOrders, function(it) {
                         if (it.editing) {
                             return false;
@@ -225,6 +228,7 @@ angular.module("orderEntry", ['orderService', 'encounterService', 'session'])
                 var encounter = {
                     patient: encounterContext.patient.uuid,
                     encounterType: encounterContext.encounterType.uuid,
+                    encounterDatetime: encounterContext.encounterDatetime,
                     visit: uuidIfNotNull(encounterContext.visit),
                     location: uuidIfNotNull(encounterContext.location),
                     provider: provider.person.uuid, // submit the person because of RESTWS-443
