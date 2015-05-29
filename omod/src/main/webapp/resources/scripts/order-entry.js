@@ -39,7 +39,7 @@ angular.module("orderEntry", ['orderService', 'encounterService', 'session'])
                 testSpecimenSources: []
             },
             draftOrders: [],
-            draftPlanText: ""
+            draftData: {}
         };
 
         var of = OrderFrequency.get({v:"fullconcept"});
@@ -104,8 +104,12 @@ angular.module("orderEntry", ['orderService', 'encounterService', 'session'])
                     orderContext.draftOrders.splice(index, 1);
                 }
             },
-            hasUnsavedData: function() {
-                return orderContext.draftOrders.length > 0 || orderContext.draftPlanText;
+            // draftDataToObsMapper needs to convert a single argument (draftData) to an array of obs.
+            // If no function is passed in, we presume that any non-null-valued field in draftData needs to be saved
+            hasUnsavedData: function(draftDataToObsMapper) {
+                return orderContext.draftOrders.length > 0 ||
+                    (draftDataToObsMapper && draftDataToObsMapper(orderContext.draftData).length > 0) ||
+                    (!draftDataToObsMapper && _.some(_.values(orderContext.draftData)));
             },
             canSaveDrafts: function() {
                 return this.hasUnsavedData() &&
@@ -207,7 +211,7 @@ angular.module("orderEntry", ['orderService', 'encounterService', 'session'])
                 return ret;
             },
 
-            signAndSave: function(orderContext, encounterContext) {
+            signAndSave: function(orderContext, encounterContext, obs) {
                 var provider = SessionInfo.get().currentProvider;
                 _.each(orderContext.draftOrders, function(it) {
                     if (it.getDosingType && it.getDosingType() && it.getDosingType().cleanup) {
@@ -232,19 +236,16 @@ angular.module("orderEntry", ['orderService', 'encounterService', 'session'])
                     location: uuidIfNotNull(encounterContext.location),
                     provider: provider.person.uuid, // submit the person because of RESTWS-443
                     orders: orders,
-                    obs: []
                 };
+                if (obs) {
+                    encounter.obs = _.map(obs, function(it) {
+                        return replaceWithUuids(it, ["concept", "value"]);
+                    });
+                }
                 // If we don't specify the encounter datetime here, the server will default to now().
                 // (If this is for a past visit with a stopDatetime, this will fail.)
                 if (encounterContext.encounterDatetime) {
                     encounter.encounterDatetime = encounterContext.encounterDatetime;
-                }
-
-                if (orderContext.draftPlanText) {
-                    encounter.obs.push({
-                        concept: "CIEL:162749",
-                        value: orderContext.draftPlanText
-                    });
                 }
 
                 var saved = Encounter.save(encounter);
