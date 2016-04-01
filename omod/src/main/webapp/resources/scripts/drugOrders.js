@@ -199,7 +199,8 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
                 var encounterContext = {
                     patient: config.patient,
                     encounterType: config.drugOrderEncounterType,
-                    location: null // TODO
+                    location: null, // TODO
+                    visit: config.visit
                 };
 
                 $scope.loading = true;
