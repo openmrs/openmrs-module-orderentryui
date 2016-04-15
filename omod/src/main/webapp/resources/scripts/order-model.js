@@ -136,7 +136,7 @@
             return !this.dateStopped &&
                     this.action !== "DISCONTINUE" &&
                 this.dateActivated && (now.isAfter(this.dateActivated) || now.isSame(this.dateActivated)) &&
-                (!this.autoExpireDate || now.isAfter(this.autoExpireDate) || now.isSame(this.autoExpireDate));
+                (!this.autoExpireDate || (this.autoExpireDate && !(now.isAfter(this.autoExpireDate) || now.isSame(this.autoExpireDate))));
         },
 
         createDiscontinueOrder: function(orderContext) {
