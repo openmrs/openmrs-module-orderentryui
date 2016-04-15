@@ -56,6 +56,12 @@ angular.module('drugOrders', ['orderService', 'encounterService', 'uicommons.fil
         }
     }]).
 
+    directive('oeuiEntry', function () {
+        return  {
+            templateUrl: 'templates/orderEntryTemplate.page'
+        };
+    }).
+
     controller('DrugOrdersCtrl', ['$scope', '$window', '$location', '$timeout', 'OrderService', 'EncounterService', 'SessionInfo', "OrderEntryService",
         function($scope, $window, $location, $timeout, OrderService, EncounterService, SessionInfo, OrderEntryService) {
 
