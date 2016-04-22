@@ -64,8 +64,8 @@ controller('DrugOrdersCtrl', ['$scope', '$window', '$location', '$timeout', 'Ord
             orderContext.provider = info.currentProvider;
             $scope.newDraftDrugOrder = OpenMRS.createEmptyDraftOrder(orderContext);
 
-            /* set the current order to be revised, if provided in the URL */
-            if (config.currentOrder) {
+            /* set the current order to be revised, if provided in the URL (with mode='revise') */
+            if (config.currentOrder && config.mode == "revise") {
                 currentOrder = new OpenMRS.DrugOrderModel(config.currentOrder)
                 $scope.reviseOrder(currentOrder);
             }
@@ -212,7 +212,13 @@ controller('DrugOrdersCtrl', ['$scope', '$window', '$location', '$timeout', 'Ord
                 $scope.loading = true;
                 OrderEntryService.signAndSave({ draftOrders: $scope.draftDrugOrders }, encounterContext)
                 .$promise.then(function(result) {
-                    location.href = location.href;
+
+                    /* if we provide an 'mode' URL param then return to returnUrl upon save */
+                    if (config.mode == "new" || config.mode == "revise") {
+                        location.href = config.returnUrl;
+                    } else {
+                        location.href = location.href;                    
+                    }
                 }, function(errorResponse) {
                     emr.errorMessage(errorResponse.data.error.message);
                     $scope.loading = false;
