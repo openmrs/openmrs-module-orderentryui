@@ -31,6 +31,8 @@ public class DrugOrdersPageController {
 			@RequestParam(value="visit", required=false) Visit visit,
 			@RequestParam(value = "careSetting", required = false) CareSetting careSetting,
 			@RequestParam(value="order", required=false) Order order,
+			@RequestParam(value = "returnUrl", required = false) String returnUrl,
+			@RequestParam(value = "mode", required = false) String mode,
 			@SpringBean("encounterService") EncounterService encounterService,
 			@SpringBean("visitService") VisitService visitService,
 			@SpringBean("orderService") OrderService orderService,
@@ -68,11 +70,20 @@ public class DrugOrdersPageController {
 			jsonConfig.put("visit", convertToFull(visit));
 		}
 
-		// if Visit is provided in the URL put it in the model
+		// if Order is provided in the URL put it in the model
 		if (order != null ) {
 			jsonConfig.put("currentOrder", convertToFull(order));
 		}
 
+		// if ReturnUrl is provided in the URL put it in the model
+		if (returnUrl != null ) {
+			jsonConfig.put("returnUrl", convertToFull(returnUrl));
+		}
+
+		// if ReturnUrl is provided in the URL put it in the model
+		if (mode != null ) {
+			jsonConfig.put("mode", convertToFull(mode));
+		}
 
 		model.put("patient", patient);
 		model.put("jsonConfig", ui.toJson(jsonConfig));
