@@ -105,10 +105,10 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
             </span>
         </p>
 
-        <p ng-if="newDraftDrugOrder.drug && careSetting.careSettingType == 'OUTPATIENT'">
+        <p ng-hide="entryOnly" ng-if="newDraftDrugOrder.drug && careSetting.careSettingType == 'OUTPATIENT'">
             <label class="heading">For outpatient orders</label>
             Dispense:
-            <input ng-model="newDraftDrugOrder.quantity" type="number" min="0" placeholder="Quantity" required/>
+            <input ng-model="newDraftDrugOrder.quantity" type="number" min="0" placeholder="Quantity" />
             <select-concept-from-list ng-model="newDraftDrugOrder.quantityUnits" concepts="quantityUnits" placeholder="Units" size="8"></select-concept-from-list>
         </p>
 
@@ -154,7 +154,7 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
         </div>
     </div>
 
-    <div id="orders-list" style="display:none;">
+    <div id="orders-list" ng-hide="entryOnly">
         <h3>Active Drug Orders</h3>
         <span ng-show="activeDrugOrders.loading">${ ui.message("uicommons.loading.placeholder") }</span>
         <span ng-hide="activeDrugOrders.loading || activeDrugOrders.length > 0">None</span>

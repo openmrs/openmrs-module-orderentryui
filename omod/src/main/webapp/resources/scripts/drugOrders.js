@@ -127,6 +127,8 @@ controller('DrugOrdersCtrl', ['$scope', '$window', '$location', '$timeout', 'Ord
             config.careSettings[0];
 
             orderContext.careSetting = $scope.careSetting;
+            
+            $scope.entryOnly = (config.mode == "revise" || config.mode == "new");
 
             loadExistingOrders();
 
