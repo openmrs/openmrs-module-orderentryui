@@ -64,8 +64,11 @@ controller('DrugOrdersCtrl', ['$scope', '$window', '$location', '$timeout', 'Ord
             orderContext.provider = info.currentProvider;
             $scope.newDraftDrugOrder = OpenMRS.createEmptyDraftOrder(orderContext);
 
-
-
+            /* set the current order to be revised, if provided in the URL */
+            if (config.currentOrder) {
+                currentOrder = new OpenMRS.DrugOrderModel(config.currentOrder)
+                $scope.reviseOrder(currentOrder);
+            }
         });
 
         // TODO changing dosingType of a draft order should reset defaults (and discard non-defaulted properties)
@@ -127,20 +130,9 @@ controller('DrugOrdersCtrl', ['$scope', '$window', '$location', '$timeout', 'Ord
 
             loadExistingOrders();
 
-            // wait for the model to fully load to then set the current order to be revised
-            $timeout(function() {
-                if (config.currentOrder) {
-                    currentOrder = new OpenMRS.DrugOrderModel(config.currentOrder)
-                    $scope.reviseOrder(currentOrder);
-                }
-            }, 10); 
-
             $timeout(function() {
                 angular.element('#new-order input[type=text]').first().focus();
             });
-
-
-
         }
 
 
