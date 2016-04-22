@@ -154,7 +154,7 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
         </div>
     </div>
 
-    <div id="orders-list" style="">
+    <div id="orders-list" style="display:none;">
         <h3>Active Drug Orders</h3>
         <span ng-show="activeDrugOrders.loading">${ ui.message("uicommons.loading.placeholder") }</span>
         <span ng-hide="activeDrugOrders.loading || activeDrugOrders.length > 0">None</span>
