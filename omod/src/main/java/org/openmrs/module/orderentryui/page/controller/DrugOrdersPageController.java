@@ -3,6 +3,7 @@ package org.openmrs.module.orderentryui.page.controller;
 import org.openmrs.CareSetting;
 import org.openmrs.Concept;
 import org.openmrs.EncounterType;
+import org.openmrs.Order;
 import org.openmrs.Patient;
 import org.openmrs.Visit;
 import org.openmrs.api.EncounterService;
@@ -29,6 +30,7 @@ public class DrugOrdersPageController {
 	public void get(@RequestParam("patient") Patient patient,
 			@RequestParam(value="visit", required=false) Visit visit,
 			@RequestParam(value = "careSetting", required = false) CareSetting careSetting,
+			@RequestParam(value="order", required=false) Order order,
 			@SpringBean("encounterService") EncounterService encounterService,
 			@SpringBean("visitService") VisitService visitService,
 			@SpringBean("orderService") OrderService orderService,
@@ -64,6 +66,11 @@ public class DrugOrdersPageController {
 		// if Visit is provided in the URL put it in the model
 		if (visit != null ) {
 			jsonConfig.put("visit", convertToFull(visit));
+		}
+
+		// if Visit is provided in the URL put it in the model
+		if (order != null ) {
+			jsonConfig.put("currentOrder", convertToFull(order));
 		}
 
 
