@@ -45,7 +45,7 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
 
 <div id="drug-orders-app" ng-controller="DrugOrdersCtrl" ng-init='init()'>
     <div class="ui-tabs">
-        <ul style="display:none;" class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header">
+        <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header">
             <li ng-repeat="setting in careSettings" class="ui-state-default ui-corner-top"
             ng-class="{ 'ui-tabs-active': setting == careSetting, 'ui-state-active': setting == careSetting }">
             <a class="ui-tabs-anchor" ng-click="setCareSetting(setting)">
@@ -105,10 +105,10 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
             </span>
         </p>
 
-        <p ng-hide="entryOnly" ng-if="newDraftDrugOrder.drug && careSetting.careSettingType == 'OUTPATIENT'">
+        <p ng-if="newDraftDrugOrder.drug && careSetting.careSettingType == 'OUTPATIENT' && skipDispense == 'false'">
             <label class="heading">For outpatient orders</label>
             Dispense:
-            <input ng-model="newDraftDrugOrder.quantity" type="number" min="0" placeholder="Quantity" />
+            <input ng-model="newDraftDrugOrder.quantity" type="number" min="0" placeholder="Quantity" required/>
             <select-concept-from-list ng-model="newDraftDrugOrder.quantityUnits" concepts="quantityUnits" placeholder="Units" size="8"></select-concept-from-list>
         </p>
 

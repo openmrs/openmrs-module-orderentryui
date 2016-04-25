@@ -126,6 +126,12 @@ controller('DrugOrdersCtrl', ['$scope', '$window', '$location', '$timeout', 'Ord
             _.findWhere(config.careSettings, { uuid: config.intialCareSetting }) :
             config.careSettings[0];
 
+            /* additional config to skip the dispense of the order */
+            $scope.skipDispense = config.skipDispense;
+            if (!config.skipDispense) {
+            $scope.skipDispense = "false"
+            }
+
             orderContext.careSetting = $scope.careSetting;
             
             $scope.entryOnly = (config.mode == "revise" || config.mode == "new");
@@ -156,6 +162,12 @@ controller('DrugOrdersCtrl', ['$scope', '$window', '$location', '$timeout', 'Ord
         $scope.addNewDraftOrder = function() {
             if ($scope.newDraftDrugOrder.getDosingType().validate($scope.newDraftDrugOrder)) {
                 $scope.newDraftDrugOrder.asNeeded = $scope.newDraftDrugOrder.asNeededCondition ? true : false;
+
+                if (config.skipDispense ==  "true") {
+                    $scope.newDraftDrugOrder.quantity = '0';
+                    $scope.newDraftDrugOrder.quantityUnits = config.quantityUnits[0];
+                }
+
                 $scope.draftDrugOrders.push($scope.newDraftDrugOrder);
                 $scope.newDraftDrugOrder = OpenMRS.createEmptyDraftOrder(orderContext);
                 $scope.newOrderForm.$setPristine();
@@ -167,6 +179,10 @@ controller('DrugOrdersCtrl', ['$scope', '$window', '$location', '$timeout', 'Ord
             }
 
             $scope.cancelNewDraftOrder = function() {
+
+                if (config.mode == "new" || config.mode == "revise") {
+                    location.href = config.returnUrl;
+                }
                 $scope.newDraftDrugOrder = OpenMRS.createEmptyDraftOrder(orderContext);
             }
 
@@ -174,6 +190,9 @@ controller('DrugOrdersCtrl', ['$scope', '$window', '$location', '$timeout', 'Ord
         // functions that affect the shopping cart of orders written but not yet saved
 
         $scope.cancelAllDraftDrugOrders = function() {
+            if (config.mode == "new" || config.mode == "revise") {
+                location.href = config.returnUrl;
+            }
             $scope.draftDrugOrders = [];
         }
 
