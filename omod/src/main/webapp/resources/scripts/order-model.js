@@ -45,8 +45,7 @@
                 order.asNeeded = order.asNeededCondition ? true : false;
             },
             format: function(order) {
-                var str = order.drug.display + ": " +
-                    order.dose + " " + order.doseUnits.display + ", " +
+                var str = order.dose + " " + order.doseUnits.display + ", " +
                     order.frequency.display + ", " +
                     order.route.display +
                     (order.asNeeded ? ", as needed" + (order.asNeededCondition ? " for " + order.asNeededCondition : "") : "");
@@ -87,7 +86,7 @@
                 return order.dosingInstructions;
             },
             format: function(order) {
-                return order.drug.display + ": \"" + order.dosingInstructions + "\"";
+                return "\"" + order.dosingInstructions + "\"";
             }
         }
     ];

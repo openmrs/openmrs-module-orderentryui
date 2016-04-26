@@ -164,39 +164,40 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
                     {{ order | dates }}
                 </td>
                 <td ng-class="{ 'will-replace': replacementFor(order) }">
-                    {{ order | instructions }}
-                </td>
-                <td class="actions">
-                    <a ng-show="!replacementFor(order)" ng-click="reviseOrder(order)">
-                        <i class="icon-pencil edit-action"></i>
-                    </a>
-                    <a ng-show="!replacementFor(order)" ng-click="discontinueOrder(order)">
-                        <i class="icon-remove delete-action"></i>
-                    </a>
-                    <span ng-show="replacementFor(order)">
-                        will {{ replacementFor(order).action }}
-                    </span>
-                </td>
-            </tr>
-        </table>
+                   {{ order.drug.display }}:
+                   {{ order | instructions }}
+               </td>
+               <td class="actions">
+                <a ng-show="!replacementFor(order)" ng-click="reviseOrder(order)">
+                    <i class="icon-pencil edit-action"></i>
+                </a>
+                <a ng-show="!replacementFor(order)" ng-click="discontinueOrder(order)">
+                    <i class="icon-remove delete-action"></i>
+                </a>
+                <span ng-show="replacementFor(order)">
+                    will {{ replacementFor(order).action }}
+                </span>
+            </td>
+        </tr>
+    </table>
 
-        <h3>Past Drug Orders</h3>
-        <span ng-show="pastDrugOrders.loading">${ ui.message("uicommons.loading.placeholder") }</span>
-        <span ng-hide="pastDrugOrders.loading || pastDrugOrders.length > 0">None</span>
-        <table id="past-drug-orders" ng-hide="pastDrugOrders.loading">
-            <tr ng-repeat="order in pastDrugOrders">
-                <td>
-                    {{ replacementForPastOrder(order) | replacement }}
-                </td>
-                <td>
-                    {{ order | dates }}
-                </td>
-                <td>
-                    {{ order | instructions }}
-                </td>
-            </tr>
-        </table>
-    </div>
+    <h3>Past Drug Orders</h3>
+    <span ng-show="pastDrugOrders.loading">${ ui.message("uicommons.loading.placeholder") }</span>
+    <span ng-hide="pastDrugOrders.loading || pastDrugOrders.length > 0">None</span>
+    <table id="past-drug-orders" ng-hide="pastDrugOrders.loading">
+        <tr ng-repeat="order in pastDrugOrders">
+            <td>
+                {{ replacementForPastOrder(order) | replacement }}
+            </td>
+            <td>
+                {{ order | dates }}
+            </td>
+            <td>
+                {{ order | instructions }}
+            </td>
+        </tr>
+    </table>
+</div>
 </div>
 
 </div>
