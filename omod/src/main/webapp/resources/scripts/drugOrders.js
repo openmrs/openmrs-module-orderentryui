@@ -127,9 +127,9 @@ controller('DrugOrdersCtrl', ['$scope', '$window', '$location', '$timeout', 'Ord
             config.careSettings[0];
 
             /* additional config to skip the dispense of the order */
-            $scope.skipDispense = config.skipDispense;
-            if (!config.skipDispense) {
-            $scope.skipDispense = "false"
+            $scope.skipDispense = (config.skipDispense == "true");
+            if ($scope.skipDispense) {
+                orderContext.skipDispense = $scope.skipDispense;
             }
 
             orderContext.careSetting = $scope.careSetting;
@@ -160,10 +160,10 @@ controller('DrugOrdersCtrl', ['$scope', '$window', '$location', '$timeout', 'Ord
         // functions that affect the new order being written
 
         $scope.addNewDraftOrder = function() {
-            if ($scope.newDraftDrugOrder.getDosingType().validate($scope.newDraftDrugOrder)) {
+            if ($scope.newDraftDrugOrder.getDosingType().validate($scope.newDraftDrugOrder, orderContext)) {
                 $scope.newDraftDrugOrder.asNeeded = $scope.newDraftDrugOrder.asNeededCondition ? true : false;
 
-                if (config.skipDispense ==  "true") {
+                if (config.skipDispense) {
                     $scope.newDraftDrugOrder.quantity = '0';
                     $scope.newDraftDrugOrder.quantityUnits = config.quantityUnits[0];
                 }

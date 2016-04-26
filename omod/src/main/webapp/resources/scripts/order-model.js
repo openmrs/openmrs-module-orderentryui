@@ -34,9 +34,9 @@
                 durationUnits: null,
                 dosingInstructions: null
             },
-            validate: function(order) {
+            validate: function(order, orderContext) {
                 var valid = order.drug && order.dose && order.doseUnits && order.frequency && order.route;
-                if (order.careSetting.careSettingType === 'OUTPATIENT') {
+                if (order.careSetting.careSettingType === 'OUTPATIENT' &&  !orderContext.skipDispense) {
                     valid = valid && order.quantity && order.quantityUnits;
                 }
                 return valid;

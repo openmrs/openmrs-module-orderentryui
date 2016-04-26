@@ -105,7 +105,7 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
             </span>
         </p>
 
-        <p ng-if="newDraftDrugOrder.drug && careSetting.careSettingType == 'OUTPATIENT' && skipDispense == 'false'">
+        <p ng-if="newDraftDrugOrder.drug && careSetting.careSettingType == 'OUTPATIENT' && !skipDispense">
             <label class="heading">For outpatient orders</label>
             Dispense:
             <input ng-model="newDraftDrugOrder.quantity" type="number" min="0" placeholder="Quantity" required/>
