@@ -38,7 +38,7 @@ filter('instructions', function() {
         }
         else {
             var text = order.getDosingType().format(order);
-            if (order.quantity) {
+            if (order.quantity && order.quantityUnits) {
                 text += ' (Dispense: ' + order.quantity + ' ' + order.quantityUnits.display + ')';
             }
             return text;
