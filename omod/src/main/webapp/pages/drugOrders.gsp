@@ -129,6 +129,7 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
                     {{ order | dates }}
                 </td>
                 <td>
+                    {{ order.drug.display }}:
                     {{ order | instructions }}
                     <span ng-show="order.action == 'DISCONTINUE'">
                         <br/>
@@ -164,10 +165,10 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
                     {{ order | dates }}
                 </td>
                 <td ng-class="{ 'will-replace': replacementFor(order) }">
-                   {{ order.drug.display }}:
-                   {{ order | instructions }}
-               </td>
-               <td class="actions">
+                 {{ order.drug.display }}:
+                 {{ order | instructions }}
+             </td>
+             <td class="actions">
                 <a ng-show="!replacementFor(order)" ng-click="reviseOrder(order)">
                     <i class="icon-pencil edit-action"></i>
                 </a>
@@ -193,6 +194,7 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
                 {{ order | dates }}
             </td>
             <td>
+                {{ order.drug.display }}:
                 {{ order | instructions }}
             </td>
         </tr>
