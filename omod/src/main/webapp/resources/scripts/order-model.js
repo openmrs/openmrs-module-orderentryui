@@ -34,9 +34,9 @@
                 durationUnits: null,
                 dosingInstructions: null
             },
-            validate: function(order) {
+            validate: function(order, orderContext) {
                 var valid = order.drug && order.dose && order.doseUnits && order.frequency && order.route;
-                if (order.careSetting.careSettingType === 'OUTPATIENT') {
+                if (order.careSetting.careSettingType === 'OUTPATIENT' &&  !orderContext.skipDispense) {
                     valid = valid && order.quantity && order.quantityUnits;
                 }
                 return valid;
@@ -45,8 +45,7 @@
                 order.asNeeded = order.asNeededCondition ? true : false;
             },
             format: function(order) {
-                var str = order.drug.display + ": " +
-                    order.dose + " " + order.doseUnits.display + ", " +
+                var str = order.dose + " " + order.doseUnits.display + ", " +
                     order.frequency.display + ", " +
                     order.route.display +
                     (order.asNeeded ? ", as needed" + (order.asNeededCondition ? " for " + order.asNeededCondition : "") : "");
@@ -87,7 +86,7 @@
                 return order.dosingInstructions;
             },
             format: function(order) {
-                return order.drug.display + ": \"" + order.dosingInstructions + "\"";
+                return "\"" + order.dosingInstructions + "\"";
             }
         }
     ];
@@ -136,7 +135,7 @@
             return !this.dateStopped &&
                     this.action !== "DISCONTINUE" &&
                 this.dateActivated && (now.isAfter(this.dateActivated) || now.isSame(this.dateActivated)) &&
-                (!this.autoExpireDate || now.isAfter(this.autoExpireDate) || now.isSame(this.autoExpireDate));
+                (!this.autoExpireDate || (this.autoExpireDate && !(now.isAfter(this.autoExpireDate) || now.isSame(this.autoExpireDate))));
         },
 
         createDiscontinueOrder: function(orderContext) {
