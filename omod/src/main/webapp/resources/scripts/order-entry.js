@@ -229,14 +229,16 @@ angular.module("orderEntry", ['orderService', 'encounterService', 'session'])
                     delete transformed.editing;
                     return transformed;
                 });
+                
                 var encounter = {
                     patient: encounterContext.patient.uuid,
                     encounterType: encounterContext.encounterType.uuid,
                     visit: uuidIfNotNull(encounterContext.visit),
                     location: uuidIfNotNull(encounterContext.location),
-                    provider: provider.person.uuid, // submit the person because of RESTWS-443
+                    // provider: provider.person.uuid, // submit the person because of RESTWS-443
                     orders: orders,
                 };
+                
                 if (obs) {
                     encounter.obs = _.map(obs, function(it) {
                         return replaceWithUuids(it, ["concept", "value"]);
