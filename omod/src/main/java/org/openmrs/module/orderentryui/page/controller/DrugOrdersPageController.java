@@ -3,6 +3,7 @@ package org.openmrs.module.orderentryui.page.controller;
 import org.openmrs.CareSetting;
 import org.openmrs.Concept;
 import org.openmrs.EncounterType;
+import org.openmrs.EncounterRole;
 import org.openmrs.Patient;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.OrderService;
@@ -33,6 +34,7 @@ public class DrugOrdersPageController {
 
         // HACK
         EncounterType drugOrderEncounterType = encounterService.getAllEncounterTypes(false).get(0);
+        EncounterRole encounterRoles = encounterService.getAllEncounterRoles(false).get(0);
 
         List<CareSetting> careSettings = orderService.getCareSettings(false);
 
@@ -45,6 +47,7 @@ public class DrugOrdersPageController {
         Map<String, Object> jsonConfig = new LinkedHashMap<String, Object>();
         jsonConfig.put("patient", convertToFull(patient));
         jsonConfig.put("provider", convertToFull(sessionContext.getCurrentProvider()));
+		jsonConfig.put("encounterRole", convertToFull(encounterRoles));
         jsonConfig.put("drugOrderEncounterType", convertToFull(drugOrderEncounterType));
         jsonConfig.put("careSettings", convertToFull(careSettings));
         jsonConfig.put("routes", convertToFull(orderService.getDrugRoutes()));

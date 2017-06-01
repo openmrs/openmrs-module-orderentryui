@@ -237,7 +237,11 @@ angular.module("orderEntry", ['orderService', 'encounterService', 'session'])
                     location: uuidIfNotNull(encounterContext.location),
                     // provider: provider.person.uuid, // submit the person because of RESTWS-443
                     orders: orders,
+					encounterProviders: [
+                		{ provider: provider.uuid, encounterRole: encounterContext.encounterRole.uuid }
+                	]
                 };
+                
                 if (obs) {
                     encounter.obs = _.map(obs, function(it) {
                         return replaceWithUuids(it, ["concept", "value"]);
