@@ -235,7 +235,6 @@ angular.module("orderEntry", ['orderService', 'encounterService', 'session'])
                     encounterType: encounterContext.encounterType.uuid,
                     visit: uuidIfNotNull(encounterContext.visit),
                     location: uuidIfNotNull(encounterContext.location),
-                    // provider: provider.person.uuid, // submit the person because of RESTWS-443
                     orders: orders,
 					encounterProviders: [
                 		{ provider: provider.uuid, encounterRole: encounterContext.encounterRole.uuid }
