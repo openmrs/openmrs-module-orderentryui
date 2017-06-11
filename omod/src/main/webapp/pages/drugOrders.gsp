@@ -48,7 +48,7 @@ ${ ui.includeFragment("coreapps", "patientHeader", [ patient: patient ]) }
             <li ng-repeat="setting in careSettings" class="ui-state-default ui-corner-top"
                 ng-class="{ 'ui-tabs-active': setting == careSetting, 'ui-state-active': setting == careSetting }">
                     <a class="ui-tabs-anchor" ng-click="setCareSetting(setting)">
-                        {{ setting | omrs.display }}
+                        {{ setting | omrsDisplay }}
                     </a>
             </li>
         </ul>
