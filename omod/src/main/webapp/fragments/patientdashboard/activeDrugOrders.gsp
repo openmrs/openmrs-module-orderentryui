@@ -17,7 +17,7 @@
         <i class="icon-medicine"></i>
         <h3>${ ui.message("orderentryui.patientdashboard.activeDrugOrders").toUpperCase() }</h3>
         <% if (context.hasPrivilege("App: orderentryui.drugOrders")) { %>
-            <a href="${ ui.pageLink("orderentryui", "drugOrders", [patient: patient.id, returnUrl: ui.thisUrl()]) }">
+        <a href="${ "../../owa/openmrs-owa-orderentry/index.html?patient="+patient.uuid }">
                 <i class="icon-share-alt edit-action right" title="${ ui.message("coreapps.edit") }"></i>
             </a>
         <% } %>
