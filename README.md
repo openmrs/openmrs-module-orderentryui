@@ -1,6 +1,9 @@
 <img src="https://talk.openmrs.org/uploads/default/original/2X/f/f1ec579b0398cb04c80a54c56da219b2440fe249.jpg" alt="OpenMRS"/>
 
 # OPENMRS ORDER ENTRY UI
+
+#### Note: This module has been deprecated in favour or [Core Apps v1.28.0](https://github.com/openmrs/openmrs-module-coreapps) + [Order Entry OWA](https://github.com/openmrs/openmrs-owa-orderentry).
+
 #### Table of Contents
 
 1. [Overview](#overview)
