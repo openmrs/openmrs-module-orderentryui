@@ -52,5 +52,31 @@
 	</messages>
 	<!-- /Internationalization -->
 
+	<!-- Global Properties Required by the Order Entry OWA -->
+	<globalProperty>
+		<property>orderentryowa.encounterType</property>
+		<description>Order Entry Encounter Type</description>
+		<defaultValue>Order Entry</defaultValue>
+	</globalProperty>
+	<globalProperty>
+		<property>orderentryowa.encounterRole</property>
+		<description>Order Entry Encounter Role</description>
+		<defaultValue>Clinician</defaultValue>
+	</globalProperty>
+	<globalProperty>
+		<property>orderentryowa.dateAndTimeFormat</property>
+		<description>Order Entry Date Format</description>
+		<defaultValue>DD-MMM-YYYY HH:mm</defaultValue>
+	</globalProperty>
+	<globalProperty>
+		<property>orderentryowa.labOrderAutoExpireTimeInDays</property>
+		<description>Lab Order Auto Expiry Time</description>
+		<defaultValue>30</defaultValue>
+	</globalProperty>
+	<globalProperty>
+		<property>orderentryowa.labOrderablesConceptSet</property>
+		<description>Laboratory Orderables</description>
+		<defaultValue>da006137-88ca-4d11-ae58-8b4b439afdd6</defaultValue>
+	</globalProperty>	
 </module>
 
